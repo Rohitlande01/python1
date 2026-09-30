@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Git Clone') {
+            steps {
+                git branch: 'main',
+                    url: 'https://github.com/adityaghaywat-cmd/python1.git'
+            }
+        }
+
+        stage('Install Dependencies') {
+            steps {
+                sh '''
+                    sudo python3 -m pip install -r requirements.txt
+                '''
+            }
+        }
+
+        stage('Deploy Flask App') {
+            steps {
+                sh '''
+                    echo "Stopping old Flask application..."
+
+                    sudo pkill -f "python3 app.py" || true
+
+                    echo "Starting Flask application..."
+
+                    sudo nohup python3 app.py > flask.log 2>&1 &
+
+                    sleep 3
+
+                    echo "Flask application started."
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Flask application deployed successfully!'
+        }
+
+        failure {
+            echo 'Flask deployment failed!'
+        }
+    }
+}
